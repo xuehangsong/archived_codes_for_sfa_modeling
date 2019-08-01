@@ -1,0 +1,180 @@
+!StaVecFr:forecast
+!StaVecAn:Analysis
+!StaVecPr:Prior
+!StaVecTr:accepted results
+
+
+subroutine enrml
+  use DA_Data
+  use Mpi_Data
+  implicit none
+  real*8 :: rmlbeta=0
+  real*8 :: DatMisOld=0,DatMisNew=0
+  integer :: Conv_Flag
+
+
+  do jreaz=1,nreaz
+     if (jreaz.lt.10) then
+        write(fi_jreaz,'(i1.1)') jreaz
+     elseif (jreaz.lt.100) then
+        write(fi_jreaz,'(i2.2)') jreaz 
+     elseif (jreaz.lt.1000) then
+        write(fi_jreaz,'(i3.3)') jreaz
+     else
+        write(fi_jreaz,'(i4.4)') jreaz
+     endif
+
+     prefix_file=trim(trim(trim('pflotran_mc/pflotran_mcR')))
+     prefix_file=trim(trim(prefix_file)//trim(fi_jreaz))//'-obs-'
+
+     call GetPflotranSimu(prefix_file,da_time(jtime),ObsEnsem(:,jreaz))
+
+  enddo
+
+  if (jiter.eq.1) then
+     call GetDataMis (DatMisOld)
+     call data_assimilation_rml(rmlbeta) 
+     Conv_Flag=0
+  else
+     call GetDataMis(DatMisNew)
+     call CheckConverge(DatMisOld,DatMisNew,Conv_Flag)
+     if((DatMisNew-DatMisOld).lt.0.) then
+        RmlBeta=2.0*RmlBeta        !increase beta by 2
+        if(Rmlbeta>1.) Rmlbeta=1.0 !truncate
+        DatMisOld=DatMisNew
+        StaVecTr=StaVecFr    !StaVecTr updated 
+     else
+        !adjust step,reinit stavecan(prepare data for next iterate)
+        Rmlbeta=Rmlbeta*0.5
+        StaVecFr=StaVecTr   
+     endif
+  endif
+
+  StaVecTr=StaVecFr
+
+
+  !preserve State vector of last data assimilation step
+  StaVecPr=StaVecTr
+  rmlbeta=iter_relax     !relax factor using in iteration
+
+
+  !first forecast
+  jiter=0
+  write(FNJiter,"(I2.2)") Jiter
+  call forecast
+
+  !no obs,no update
+  if(NobsAva.eq.0) then 
+     StaVecTr=StaVecFr   !no obs,no update
+  else 
+
+     StaVecTr=StaVecFr   !first forecast is regarded as optimal before iteration
+     Jiter=1
+     do while(.true.)
+        write(FNJiter,"(I2.2)") Jiter
+
+        call GetPrediction
+
+        !data miss between observation and predition
+        if (jiter.lt.2) then
+           call GetDataMis(DatMisOld)
+        endif
+
+        !noted only parmeters updated in ENRML!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        call data_assimilation_rml(Rmlbeta) 
+        StaVecFr(1:Nparm,:)=StaVecAn(1:Nparm,:) !the StaVecFr must be updated,too !!!!!
+
+        ! use updated parameters to get new production data for optimizations,(h remain the init)
+        call forecast
+
+        !data mismatch between observation and predition
+        call GetDataMis(DatMisNew)
+
+        !check converage criteria
+        call CheckConverge(DatMisOld,DatMisNew,Conv_Flag)
+
+        if((DatMisNew-DatMisOld).lt.0.) then
+           RmlBeta=2.0*RmlBeta        !increase beta by 2
+           if(Rmlbeta>1.) Rmlbeta=1.0 !truncate
+           DatMisOld=DatMisNew
+           StaVecTr=StaVecFr    !StaVecTr updated 
+        else
+           !adjust step,reinit stavecan(prepare data for next iterate)
+           Rmlbeta=Rmlbeta*0.5
+           StaVecFr=StaVecTr   
+        endif
+        if (Conv_Flag.gt.0) return
+        Jiter=Jiter+1
+     enddo
+
+
+  endif
+end subroutine enrml
+
+
+
+
+
+subroutine GetDataMis(DatMismatch)
+  use DA_Data
+  implicit none
+  real*8,allocatable,dimension(:,:) ::InvObsVar     !inverse of obs variance
+  real*8 :: DatMisMatch
+  real*8,allocatable,dimension(:,:) :: temp1
+  real*8 :: temp2(1,1)
+  integer :: i,j
+
+  allocate(InvObsVar(NobsAva,NobsAva))
+  allocate(temp1(NobsAva,1))
+  InvObsVar=0.0
+  temp1=0.0
+
+  !get Cd(-1)(noted that ObsAvaVar is diagonal)
+  do i=1,NObsAva
+     InvObsVar(i,i)=1./real(ObsAvaVar(i))
+  enddo
+
+  !get prediction
+  !call Getprediction   
+
+  !get DatMismatch
+  DatMisMatch=0.
+  temp2=0
+  do j=1,Nreaz
+     temp1(1:NobsAva,1)=ObsEnsem(1:NobsAva,j)-ObsAvaPer(1:NobsAva,j)
+     temp2=matmul(matmul(transpose(temp1),InvObsVar),temp1)
+     DatMisMatch=temp2(1,1)+DatMisMatch
+  enddo
+
+  DatMisMatch=(DatMisMatch/real(Nreaz))/real(NobsAva)
+
+  deallocate(InvObsVar,temp1)
+end subroutine GetDataMis
+
+
+
+
+
+subroutine CheckConverge(DatMisNew,DatMisOld,Conv_Flag)
+  use DA_Data
+  implicit none
+  real*8 :: DatMisold,DatMisnew
+  integer :: Conv_Flag
+  real*8,allocatable,dimension(:,:) :: DiffParm
+  allocate(DiffParm(Nparm,Nreaz))
+  DiffParm(1:Nparm,1:NReaz)=StaVecTr(1:Nparm,1:Nreaz)-StaVecFr(1:Nparm,1:Nreaz)
+  if((maxval(abs(DiffParm)).lt.EpsPar).or.(abs(DatMisNew-DatMisOld).lt.(EpsRatio*DatMisOld)).or.(Jiter.ge.MaxIter)) then
+     Conv_Flag=1
+  else
+     Conv_Flag=0
+  endif
+  deallocate(DiffParm)
+end subroutine CheckConverge
+
+
+
+
+
+
+
+

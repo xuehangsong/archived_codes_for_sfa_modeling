@@ -1,0 +1,11 @@
+nreaz=100
+obs.list=c("Well_01M","Well_01H","Well_02M","Well_02H","Well_03M","Well_03H","Well_04M","Well_04H","Well_05M","Well_05H")
+nobs=length(obs.list)
+obs.var=rep(0.002*0.002,nobs)
+obs.time=seq(1,2700,1)
+                                        #obs.time=c(1,2)
+                                        #obs.time=seq(1,30,1)
+ntime=length(obs.time)
+obs.type="Liquid Pressure"
+obs.xyz=array(rep(0,nobs*3),c(nobs,3))
+colnames(obs.xyz)=c("x","y","z")

@@ -1,0 +1,70 @@
+rm(list = ls())
+library(rhdf5)
+library(BurStFin) #for partial.rainbow
+source("codes/create.material.grid.R")
+
+obs.time = seq(0,2700)
+ntime = length(obs.time)
+
+output.name="short.multi"
+prefix.h5file = "short.multi/2duniform-"
+
+h5.data=list()
+for (itime in 1:ntime)
+{
+    h5.file = paste(prefix.h5file,formatC((obs.time[itime]),width=3,flag='0'),".h5",sep='') #sprintf("%03d",x)
+    h5.data[[itime]] = h5dump(h5.file)
+    print(itime)
+}
+
+header = names(h5.data[[1]][[3]])
+
+
+simu.all=array(rep(nx.new*nz.new*ntime),c(nx.new,nz.new,ntime))
+
+for (itime in 1:ntime) {
+    print(itime)
+
+
+
+    simu.col=grep("X-Velocity",header,fixed = TRUE)
+    simu.results = h5.data[[itime]][[3]][[simu.col]]
+    simu.results = aperm(simu.results,c(3,1,2))
+    simu.results = simu.results[,,]
+    simu.all[,,itime] = simu.results    
+
+
+
+
+
+
+
+
+
+
+
+
+}
+save(simu.all,file=paste("results/",output.name,".x.velocity",sep=''))
+
+## simu.col=grep("Y-Velocity",header,fixed = TRUE)
+## simu.all=array(rep(nx.new*nz.new*ntime),c(nx.new,nz.new,ntime))
+## for (itime in 1:ntime) {
+##     print(itime)
+##     simu.results = h5.data[[itime]][[3]][[simu.col]]
+##     simu.results = aperm(simu.results,c(3,1,2))
+##     simu.results = simu.results[,,]
+##     simu.all[,,itime] = simu.results    
+## }
+## save(simu.all,file=paste("results/",output.name,".y.velocity",sep=''))
+
+simu.col=grep("Z-Velocity",header,fixed = TRUE)
+simu.all=array(rep(nx.new*nz.new*ntime),c(nx.new,nz.new,ntime))
+for (itime in 1:ntime) {
+    print(itime)
+    simu.results = h5.data[[itime]][[3]][[simu.col]]
+    simu.results = aperm(simu.results,c(3,1,2))
+    simu.results = simu.results[,,]
+    simu.all[,,itime] = simu.results    
+}
+save(simu.all,file=paste("results/",output.name,".z.velocity",sep=''))

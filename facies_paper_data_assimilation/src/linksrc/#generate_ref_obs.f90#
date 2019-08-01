@@ -1,0 +1,172 @@
+program generate_ref_obs
+  implicit none
+  integer :: i,j,i_index,i_file
+  character*100 :: fname,prefix_obs_loc
+  integer :: Head_locator
+  character*10000 :: Obs_Head
+  real,allocatable,dimension(:) :: Temp_data
+  integer,dimension(:) :: obs_index(1000)
+  real*8 :: simu_time
+  integer :: sum_obs
+  character*100 :: Fi_file,fi_jtime
+  character*100 :: par_file,ref_dir,obs_dir
+  logical :: file_exist
+  character*100 :: temp_getarg
+
+  integer :: Nobs
+  real*8,allocatable,dimension(:) :: Simu_Obs
+  real*8,allocatable,dimension(:) :: Obs_time
+  real*8 :: obs_var
+  integer :: jtime,ntime
+
+
+
+  !-----  FOR NOISY OBSERVATION  ----
+  !integer :: KORDEI,MAXOP1,IERR,MAXINT,IDUM
+  !integer :: IXV
+  !parameter (KORDEI=12,MAXOP1=KORDEI+1,MAXINT=2**30)
+  real xp   !REAL HERE
+  REAL*8 :: p   !acorni
+  integer :: ierr
+  !   COMMON/iaco/ ixv(MAXOP1)
+
+  call getarg(1,par_file)
+  call getarg(2,ref_dir)
+  call getarg(3,obs_dir)
+  call getarg(4,temp_getarg)
+  read(temp_getarg,*) obs_var
+
+  open(100,file=trim(par_file),status='old')   
+  read(100,*) Ntime
+  allocate(obs_time(Ntime))
+  read(100,*) (obs_time(i),i=1,Ntime)
+  read(100,*) Nobs
+  read(100,*) prefix_obs_loc
+  close(100)   
+
+
+  open(200,file='ref_obs.dat',status='unknown')
+  Do jtime=1,Ntime
+
+
+     if (jtime.lt.10) then
+        write(fi_jtime,'(i1.1)') jtime
+     elseif (jtime.lt.100) then
+        write(fi_jtime,'(i2.2)') jtime 
+     elseif (jtime.lt.1000) then
+        write(fi_jtime,'(i3.3)') jtime
+     else
+        write(fi_jtime,'(i4.4)') jtime
+     endif
+
+
+
+     allocate(Simu_Obs(Nobs))
+     sum_obs=0
+     i_file=0
+     do while(.TRUE.)
+
+        if(i_file.lt.10) then
+          write(Fi_file,"(i1.1)") i_file
+        elseif (i_file.lt.100) then
+           write(Fi_file,"(i2.2)") i_file
+        elseif (i_file.lt.1000) then
+           write(Fi_file,'(i3.3)') i_file
+        else
+           write(Fi_file,'(i4.4)') i_file
+        endif
+
+        fname=trim(trim(ref_dir)//trim(Fi_file))//'.tec'
+
+        write(*,*) fname
+
+        inquire(file=trim(fname),exist=file_exist)
+        if(file_exist) then
+           obs_index=0
+           open(100,file=trim(fname),status='old')
+
+
+           !Find the index of observation
+           i_index=0
+           Head_locator=0
+           obs_index=0
+           read(100,'(a10000)') Obs_Head
+           do while(.TRUE.)
+              Head_locator=index(Obs_Head,trim(prefix_obs_loc))
+              if (Head_locator.gt.0) then
+                 i_index=i_index+1
+                 Head_locator=Head_locator+len(trim(prefix_obs_loc))
+                 Obs_Head=Obs_Head(Head_locator:)
+                 read(Obs_Head,*) Obs_index(i_index)
+              else
+                 exit
+              endif
+           enddo
+           !store observation
+           allocate(Temp_data(i_index))
+           do while(.TRUE.)
+
+              read(100,'(e14.6)',advance='no') Simu_Time
+              if(abs((Simu_Time-Obs_Time(jtime))).lt.1e-8) then
+                 do i=1,i_index-1
+                    read(100,'(e14.6)',advance='no') Temp_data(i)
+                 enddo
+                 read(100,'(e14.6)') Temp_data(i)
+                 exit
+              else
+                 read(100,*)
+              endif
+           enddo
+
+           !pick up pressure head observation
+           j=1
+           do i=1,100
+              if (obs_index(i).eq.obs_index(i+1)) then
+                 j=j+1
+              else
+                 exit
+              endif
+           enddo
+
+
+           do i=1,i_index/j
+              Simu_Obs(Obs_index(1+(i-1)*j))=Temp_data(1+(i-1)*j)
+           enddo
+           deallocate(Temp_data)
+           close(100)
+
+
+           sum_obs=i_index/j+sum_obs
+
+
+           if (sum_obs.eq.Nobs) then
+              exit
+           endif
+
+        else
+        endif
+        i_file=i_file+1
+     enddo
+
+     !     write(fname,'(i4.4)') jtime
+     !     fname=trim(trim(trim(obs_dir)//trim(fname))//".dat")
+
+     fname=trim(obs_dir)//fi_jtime
+     open(300,file=trim(fname),status='unknown')
+     do i=1,Nobs
+        !            p = acorni(idum)
+        call random_number(p)
+        CALL gauinv(p,xp,ierr)  !!!?????????????????
+        write(300,'(2f16.8)')  simu_obs(i)/9810.0 +xp*SQRT(obs_var),obs_var
+     enddo
+
+
+
+     write(200,'(8f16.8)')   (simu_obs(i)/9810.0,i=1,Nobs)
+     deallocate(Simu_Obs)
+     close(300)
+  enddo
+
+  deallocate(Obs_time)
+  close(200)
+end program generate_ref_obs

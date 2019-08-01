@@ -1,0 +1,11 @@
+D_T1_res = reshape(D_T1,9900,1);
+D_T1_sort = sort(D_T1_res);
+[m1,n1] = find(D_T1 == D_T1_sort(9900));
+[m2,n2] = find(D_T1 == D_T1_sort(9899));
+[m3,n3] = find(D_T1 == D_T1_sort(9898));
+[m4,n4] = find(D_T1 == D_T1_sort(9897));
+[m5,n5] = find(D_T1 == D_T1_sort(9896));
+[m6,n6] = find(D_T1 == D_T1_sort(9895));
+[m7,n7] = find(D_T1 == D_T1_sort(9894));
+[m8,n8] = find(D_T1 == D_T1_sort(9893));
+[m9,n9] = find(D_T1 == D_T1_sort(9892));

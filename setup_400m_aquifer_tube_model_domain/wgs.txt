@@ -1,0 +1,6 @@
+[?12/?22/?2016 2:54 PM] Ren, Huiying: 
+utmcoorbd<-SpatialPoints(cbind(c(550000,596000),c(110000,150000)),
+proj4string=CRS("+proj=lcc +lat_1=45.83333333333334 +lat_2=47.33333333333334 +lat_0=45.33333333333334 +lon_0=-120.5 +x_0=500000.0000000002 +y_0=0 +ellps=GRS80 +datum=NAD83 "))
+longlatcoorbd<-spTransform(utmcoorbd,CRS("+proj=longlat +ellps=WGS84")) 
+[?12/?22/?2016 3:27 PM] Song, Xuehang: 
+????

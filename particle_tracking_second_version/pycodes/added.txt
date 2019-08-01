@@ -1,0 +1,50 @@
+        # for east boundary
+        x_darcy[0, :, :] = (+ x_darcy[1, :, :]
+                            - y_darcy[0, 0:ny, :]
+                            + y_darcy[0, 1:(ny + 1), :]
+                            - z_darcy[0, :, 0:nz]
+                            + z_darcy[0, :, 1:(nz + 1)])
+        # for south boundary
+        y_darcy[:, 0, :] = (-x_darcy[0:nx, 0, :]
+                            + x_darcy[1:(nx + 1), 0, :]
+                            + y_darcy[:, 1, :]
+                            - z_darcy[:, 0, 0:nz]
+                            + z_darcy[:, 0, 1:(nz + 1)])
+        # for north boundary
+        y_darcy[:, ny, :] = (+ x_darcy[0:nx, (ny - 1), :]
+                             - x_darcy[1:(nx + 1), (ny - 1), :]
+                             + y_darcy[:, (ny - 1), :]
+                             + z_darcy[:, (ny - 1), 0:nz]
+                             - z_darcy[:, (ny - 1), 1:(nz + 1)])
+        # for river_face
+        for iface in range(len(face_ids)):
+            cell_x = face_index[iface, 0]
+            cell_y = face_index[iface, 1]
+            cell_z = face_index[iface, 2]
+
+            vx1 = x_darcy[cell_x][cell_y][cell_z]
+            vx2 = x_darcy[cell_x + 1][cell_y][cell_z]
+            vy1 = y_darcy[cell_x][cell_y][cell_z]
+            vy2 = y_darcy[cell_x][cell_y + 1][cell_z]
+            vz1 = z_darcy[cell_x][cell_y][cell_z]
+            vz2 = z_darcy[cell_x][cell_y][cell_z + 1]
+
+            if face_ids[iface] == 1:
+                vx1 = vx2 - vy1 + vy2 - vz1 + vz2
+            elif face_ids[iface] == 2:
+                vx2 = vx1 + vy1 - vy2 + vz1 - vz2
+            elif face_ids[iface] == 3:
+                vy1 = vy2 - vx1 + vx2 - vz1 + vz2
+            elif face_ids[iface] == 4:
+                vy2 = vy1 + vx1 - vx2 + vz1 - vz2
+            elif face_ids[iface] == 5:
+                vz1 = vz2 - vx1 + vx2 - vy1 + vy2
+            elif face_ids[iface] == 6:
+                vz2 = vz1 + vx1 - vx2 + vy1 - vy2
+
+            x_darcy[cell_x][cell_y][cell_z] = vx1
+            x_darcy[cell_x + 1][cell_y][cell_z] = vx2
+            y_darcy[cell_x][cell_y][cell_z] = vy1
+            y_darcy[cell_x][cell_y + 1][cell_z] = vy2
+            z_darcy[cell_x][cell_y][cell_z] = vz1
+            z_darcy[cell_x][cell_y][cell_z + 1] = vz2

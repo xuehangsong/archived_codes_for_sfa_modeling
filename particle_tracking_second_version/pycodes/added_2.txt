@@ -1,0 +1,68 @@
+        x_darcy = simu_snapshot["Liquid X-Flux Velocities"][:]
+        y_darcy = simu_snapshot["Liquid Y-Flux Velocities"][:]
+        z_darcy = simu_snapshot["Liquid Z-Flux Velocities"][:]
+
+        # assign face flux(may need fix)
+        x_darcy = np.append(x_darcy[0: 1, :, :], x_darcy, 0)
+        x_darcy = np.append(x_darcy, x_darcy[(nx - 1): nx, :, :], 0)
+        y_darcy = np.append(y_darcy[:, 0: 1, :], y_darcy, 1)
+        y_darcy = np.append(y_darcy, y_darcy[:, (ny - 1): ny, :], 1)
+        z_darcy = np.append(z_darcy[:, :, 0: 1], z_darcy, 2)
+        z_darcy = np.append(z_darcy, z_darcy[:, :, (nz - 1): nz], 2)
+
+        # for east boundary
+        x_darcy[0, :, :] = (+ x_darcy[1, :, :]
+                            - y_darcy[0, 0:ny, :]
+                            + y_darcy[0, 1:(ny + 1), :]
+                            - z_darcy[0, :, 0:nz]
+                            + z_darcy[0, :, 1:(nz + 1)])
+        # for south boundary
+        y_darcy[:, 0, :] = (-x_darcy[0:nx, 0, :]
+                            + x_darcy[1:(nx + 1), 0, :]
+                            + y_darcy[:, 1, :]
+                            - z_darcy[:, 0, 0:nz]
+                            + z_darcy[:, 0, 1:(nz + 1)])
+        # for north boundary
+        y_darcy[:, ny, :] = (+ x_darcy[0:nx, (ny - 1), :]
+                             - x_darcy[1:(nx + 1), (ny - 1), :]
+                             + y_darcy[:, (ny - 1), :]
+                             + z_darcy[:, (ny - 1), 0:nz]
+                             - z_darcy[:, (ny - 1), 1:(nz + 1)])
+        # for river_face
+#        for iface in range(len(face_ids)):
+        for iface in range(len(unique_face_index)):
+            cell_x = unique_face_index[iface, 0]
+            cell_y = unique_face_index[iface, 1]
+            cell_z = unique_face_index[iface, 2]
+
+            vx1 = x_darcy[cell_x][cell_y][cell_z]
+            vx2 = x_darcy[cell_x + 1][cell_y][cell_z]
+            vy1 = y_darcy[cell_x][cell_y][cell_z]
+            vy2 = y_darcy[cell_x][cell_y + 1][cell_z]
+            vz1 = z_darcy[cell_x][cell_y][cell_z]
+            vz2 = z_darcy[cell_x][cell_y][cell_z + 1]
+
+            face_id_1 = face_ids[
+                np.equal(face_index, unique_face_index[iface, :]).all(1)]
+
+            face_id_1 = sorted(face_id_1)[0]
+
+            if face_id_1 == 1:
+                vx1 = vx2 - vy1 + vy2 - vz1 + vz2
+            elif face_id_1 == 2:
+                vx2 = vx1 + vy1 - vy2 + vz1 - vz2
+            elif face_id_1 == 3:
+                vy1 = vy2 - vx1 + vx2 - vz1 + vz2
+            elif face_id_1 == 4:
+                vy2 = vy1 + vx1 - vx2 + vz1 - vz2
+            elif face_id_1 == 5:
+                vz1 = vz2 - vx1 + vx2 - vy1 + vy2
+            elif face_id_1 == 6:
+                vz2 = vz1 + vx1 - vx2 + vy1 - vy2
+
+            x_darcy[cell_x][cell_y][cell_z] = vx1
+            x_darcy[cell_x + 1][cell_y][cell_z] = vx2
+            y_darcy[cell_x][cell_y][cell_z] = vy1
+            y_darcy[cell_x][cell_y + 1][cell_z] = vy2
+            z_darcy[cell_x][cell_y][cell_z] = vz1
+            z_darcy[cell_x][cell_y][cell_z + 1] = vz2
