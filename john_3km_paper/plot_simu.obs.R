@@ -9,15 +9,15 @@ path = "/files3/pin/simulations/Test13_piecewiseGrad_2010_2015_6h/new_simulation
 path = "/files1/song884/bpt/new_simulation_13_25/"
 case_name = "25_13"
 
-## path = "/files1/song884/bpt/new_simulation_13_5/"
-## case_name = "5_13"
+path = "/files1/song884/bpt/new_simulation_13_5/"
+case_name = "5_13"
 
-## path = "/files3/pin/simulations/Test13_piecewiseGrad_2010_2015_6h/"
-## case_name = "1_12"
+path = "/files3/pin/simulations/Test13_piecewiseGrad_2010_2015_6h/"
+case_name = "1_12"
 
 
-## path = "/files3/pin/simulations/Test13_piecewiseGrad_2010_2015_6h/new_simulation_13/"
-## case_name = "1_13"
+path = "/files3/pin/simulations/Test13_piecewiseGrad_2010_2015_6h/new_simulation_13/"
+case_name = "1_13"
 
 load(paste(path,"simu_wells.r",sep=''))
 start.time = as.POSIXct("2010-01-01 00:00:00",tz="GMT")
@@ -51,12 +51,10 @@ spc.max = max(obs[,4])
 
 for (iwell in wells)
 {
-#    fname = paste(path,"figures/",iwell,"_SpC_",case_name,".pdf",sep="")
-    fname = paste(path,"figures/",iwell,"_SpC_",case_name,".jpg",sep="")    
+    fname = paste(path,"figures/",iwell,"_SpC_",case_name,".pdf",sep="")
     print(iwell)
 ##    pdf(file=fname,width=7,height=5)
-#    pdf(file=fname,width=5.83,height=5)
-    jpeg(file=fname,width=4.3,height=2.5,unit="in",quality=100,res=300)        
+    pdf(file=fname,width=5.83,height=5)    
     par(mar=c(2,3,2,1))
     plot(simu.real.time[selected.time],tracer[[1]][[iwell]][selected.time]/0.001,type="l",col="white",ylim=c(0,1.2),
          xlim = range(simu.real.time[selected.time]),
@@ -81,27 +79,18 @@ for (iwell in wells)
     points(obs[obs.row,2],data,pch=1,cex=1)
 
     
-    ## legend(x=as.POSIXct("2013-03-20",tz="GMT"),y=1.25,
-    ##        c("SpC observation","Groundwater tracer"),lty=1,pch=c(1,NA),
-    ##        lwd=2,col=c("black","red"),horiz=TRUE,bty="n")
-
-    ## legend(x=as.POSIXct("2013-03-5",tz="GMT"),y=1.15,
-    ##        c("River tracer north","River tracer middle"),lty=1,
-    ##        lwd=2,col=colors,horiz=TRUE,bty="n")
-
-    legend(x=as.POSIXct("2013-03-20",tz="GMT"),y=1.3,
-           c("SpC Obs.","GW tracer"),lty=1,pch=c(1,NA),
+    legend(x=as.POSIXct("2013-03-20",tz="GMT"),y=1.25,
+           c("SpC observation","Groundwater tracer"),lty=1,pch=c(1,NA),
            lwd=2,col=c("black","red"),horiz=TRUE,bty="n")
 
-    legend(x=as.POSIXct("2013-03-20",tz="GMT"),y=1.15,
-           c("RW N.    ","RW M."),lty=1,
+    legend(x=as.POSIXct("2013-03-5",tz="GMT"),y=1.15,
+           c("River tracer north","River tracer middle"),lty=1,
            lwd=2,col=colors,horiz=TRUE,bty="n")
 
     
-    
     dev.off()
 }    
-stop()
+
 obs.type = 6 
 for (iwell in wells)
 {
@@ -155,6 +144,8 @@ for (iwell in wells)
 }    
 
     
+
+stop()
 
 
 obs.type = 6 
