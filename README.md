@@ -1,4 +1,4 @@
-These are the codes I developed for SBR_SFA projects before FY2019. The repo is not only about setting up PFLOTRAN in different ways, there are more components related to geostatistics, data assimilation, and quite a lot of postprocessing codes. I learned recently from the EM related projects that "You did nothing unless you documented what you did". Leassons well learned. lol.
+These are the codes I developed for SBR_SFA projects before FY2019. The repo is not only about setting up PFLOTRAN in different ways, there are more components related to geostatistics, data assimilation, and quite a lot of postprocessing codes. I learned recently from the EM related projects that "You did nothing unless you documented what you did". That's true. lol.
 
 These codes were used to support the modeling parts in at least five WRR papers, including 
 Shuai et al., 2019 doi:10.1029/2018WR024193. 70% of model setup, 40% of postprocessing
