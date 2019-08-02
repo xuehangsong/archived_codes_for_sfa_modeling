@@ -1,4 +1,0 @@
-rm(list=ls())
-library(rhdf5)
-library(akima)
-load("results/flux_profile_average.r")

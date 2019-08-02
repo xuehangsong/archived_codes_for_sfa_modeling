@@ -1,3 +1,0 @@
-rm(list=ls())
-library(xts)
-load("results/thermal.data.r")
