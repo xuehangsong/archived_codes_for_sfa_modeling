@@ -1,5 +1,5 @@
-These are the codes I developed for SBR_SFA projects before FY2019. The repo is not only about setting up PFLOTRAN in different ways, there are more components related to geostatistics, data assimilation, and quite a lot of postprocessing codes. I learned recently from the EM related projects that "You did nothing unless you documented what you did". That's true. lol.  
-Most of these codes were written using R. Since then, I switched more towards Python. The R codes become legacy to me. However, I believe it can still be useful for others. 
+These are the codes I developed for SBR_SFA projects before FY2019. The repo is not only about setting up PFLOTRAN in different ways, there are more components related to geostatistics, data assimilation, and quite a lot of postprocessing codes. I learned recently from the EM related projects that "**You did nothing unless you documented what you did**". That's true. lol.  
+Most of the early codes were written using R. I switched more towards Python in the middle. The R codes gradully become legacy to me. However, I believe it can still be useful for others. There're also a lot of Fortran, Matlab, Shell scipts. 
 
 
 ## What were these codes used for? 
