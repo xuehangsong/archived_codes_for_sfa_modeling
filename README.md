@@ -9,7 +9,7 @@ These codes were used to support the modeling parts in at least five WRR papers,
 **Dai et al., 2019** doi:10.1029/2018WR023589. 100% of model setup  
 **Song et al., 2018** doi:10.1029/2018WR022586. 100% of model setup and postprocessing  
 **Dai et al., 2019** doi:10.1002/2016WR019756. 80% of model setup  
-Parts of the codes were also used for supporing data analysis in other papers, such as the wavelet analysis in **Zhou et al., 2018 ** doi:10.1002/2017WR020508.   
+Parts of the codes were also used for supporing data analysis in other papers, such as the wavelet analysis in **Zhou et al., 2018** doi:10.1002/2017WR020508.   
 
 These codes support lots of presentations related to the groundwater modeling studies in the SFA project in the past 3~4 years.
 
